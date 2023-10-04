@@ -1,0 +1,11 @@
+Nombre;Posicion;Salario;FechaContratacion
+Liam;Gerente;52000;07/09/2021
+Emma;Desarrollador;39000;14/12/2020
+Noah;Recepcionista;31000;23/03/2022
+Ava;Analista;46000;19/06/2021
+Lucas;Ingeniero;49000;12/04/2020
+Mia;Diseñador;37000;05/10/2022
+Jackson;Contador;43000;11/12/2019
+Sophie;Asistente;33000;01/07/2021
+Logan;Programador;42000;20/10/2022
+Grace;Analista;48000;30/05/2020
