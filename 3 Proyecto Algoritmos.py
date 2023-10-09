@@ -16,12 +16,6 @@ class Empleado: #Representa los datos de cada empleado
         self.izquierda = None
         self.derecha = None
 
-    def conversion_fechas(self):
-        try:
-            return datetime.strptime(self.fecha_contratacion, "%d/%m/%Y")
-        except ValueError:
-            print("Error al convertir la fecha. Formato incorrecto")
-
 #CRUDL
 class ArbolEmpleados: #Metodos a implementar en 1er modulo
     def __init__(self):
@@ -161,35 +155,162 @@ class ArbolEmpleados: #Metodos a implementar en 1er modulo
         return empleados
 
     def altura_arbol_inorden(self): #recorrido inorden
-        return self._altura_inorden(self.raiz)
+        elementos = []
+        self._altura_inorden(self.raiz, elementos)
+        return len(elementos)
 
-    def _altura_inorden(self, nodo):
-        if nodo is None:
-            return 0
-        else:
-            altura_izquierda = self._altura_inorden(nodo.izquierda)
-            altura_derecha = self._altura_inorden(nodo.derecha)
-            return max(altura_izquierda, altura_derecha) + 1
+    def _altura_inorden(self, nodo, elementos):
+        if nodo:
+            self._altura_inorden(nodo.izquierda, elementos)
+            elementos.append(nodo.empleado)
+            self._altura_inorden(nodo.derecha, elementos)
         
     def altura_arbol_preorden(self): #recorrido preorden
-        return self._altura_preorden(self.raiz)
+        elementos = []
+        self._altura_preorden(self.raiz, elementos)
+        return len(elementos)
 
-    def _altura_preorden(self, nodo):
-        if nodo is None:
-            return 0
-        else:
-            altura_izquierda = self._altura_preorden(nodo.izquierda)
-            altura_derecha = self._altura_preorden(nodo.derecha)
-            return max(altura_izquierda, altura_derecha) + 1        
-           
+    def _altura_preorden(self, nodo, elementos): #recorrido en preorden
+        if nodo:
+            elementos.append(nodo.empleado)
+            self._altura_preorden(nodo.izquierda, elementos)
+            self._altura_preorden(nodo.derecha, elementos)      
 #Hasta aqui la clase ArbolEmpleados()          
+
+class Factura: #Creacion de una factura
+    def __init__(self, costo_total, servicios_adicionales, metodo_pago, estado_pago):
+        self.costo_total = costo_total
+        self.servicios_adicionales = servicios_adicionales
+        self.metodo_pago = metodo_pago
+        self.estado_pago = estado_pago
+
+class NodoAVL: #Creacion de arbol AVL
+    def __init__(self, factura):
+        self.factura = factura
+        self.izquierdo = None
+        self.derecho = None
+        self.altura = 1
+
+class ArbolAVL:
+    def altura(self, nodo):
+        return nodo.altura if nodo else 0
+
+    def maximo(self, a, b):
+        return a if a > b else b
+
+    def rotacion_derecha(self, y):
+        x = y.izquierdo
+        T2 = x.derecho
+
+        x.derecho = y
+        y.izquierdo = T2
+
+        y.altura = self.maximo(self.altura(y.izquierdo), self.altura(y.derecho)) + 1
+        x.altura = self.maximo(self.altura(x.izquierdo), self.altura(x.derecho)) + 1 
+
+        return x
+
+    def rotacion_izquierda(self, x):
+        y = x.derecho
+        T2 = y.izquierdo
+
+        y.izquierdo = x
+        x.derecho = T2
+
+        x.altura = self.maximo(self.altura(x.izquierdo), self.altura(x.derecho)) + 1
+        y.altura = self.maximo(self.altura(y.izquierdo), self.altura(y.derecho)) + 1 
+
+        return y
+
+    def factor_equilibrio(self, nodo):
+        return self.altura(nodo.izquierdo) - self.altura(nodo.derecho)
+
+    def insertar(self, nodo, factura):
+        if not nodo:
+            return NodoAVL(factura)
+
+        if factura.costo_total < nodo.factura.costo_total:
+            nodo.izquierdo = self.insertar(nodo.izquierdo, factura)
+        else:
+            nodo.derecho = self.insertar(nodo.derecho, factura)
+
+        nodo.altura = self.maximo(self.altura(nodo.izquierdo), self.altura(nodo.derecho)) + 1
+
+        return self.balancear(nodo)
+
+    def balancear(self, nodo):
+        factor_equilibrio = self.factor_equilibrio(nodo)
+
+        if factor_equilibrio > 1:
+            if nodo.izquierdo and self.factor_equilibrio(nodo.izquierdo) >= 0:
+                return self.rotacion_derecha(nodo)
+            elif nodo.izquierdo and self.factor_equilibrio(nodo.izquierdo) < 0:
+                nodo.izquierdo = self.rotacion_izquierda(nodo.izquierdo)
+                return self.rotacion_derecha(nodo)
+
+        elif factor_equilibrio < -1:
+            if nodo.derecho and self.factor_equilibrio(nodo.derecho) <= 0:
+                return self.rotacion_izquierda(nodo)
+            elif nodo.derecho and self.factor_equilibrio(nodo.derecho) > 0:
+                nodo.derecho = self.rotacion_derecha(nodo.derecho)
+                return self.rotacion_izquierda(nodo)
+
+        return nodo
+
+    def leer_facturas(self, reservas):
+        facturas = []
+        with open(reservas, 'r') as archivo:
+            archivo.readline()
+            for linea in archivo:
+                campos = linea.strip().split(';')
+                factura = Factura(int(campos[0]), campos[1], campos[2], campos[3])
+                facturas.append(factura)
+
+        return facturas
+
+    def serializar(self, archivo):
+        with open(f"{archivo}.pickle", 'wb') as f:
+            pickle.dump(self, f)
+
+    def deserializar(self, archivo):
+        with open(f"{archivo}.pickle", 'rb') as f:
+            return pickle.load(f)
+        
+    def imprimir_facturas(self, nodo):
+        if not nodo:
+            return  
+
+        print("Costo total:", nodo.factura.costo_total)
+        print("Servicios Adicionales:", nodo.factura.servicios_adicionales)
+        print("Metodo de pago:", nodo.factura.metodo_pago)
+        print("Estado de pago:", nodo.factura.estado_pago)
+        print()
+
+        self.imprimir_facturas(nodo.izquierdo)
+
+    def altura_arbol_postorden(self, nodo):
+            if nodo is None:
+                return 0, 0  # Retornamos tanto la altura como el número de nodos
+
+            # Calcular altura de los subárboles izquierdo y derecho en postorden
+            altura_izquierda, nodos_izquierda = self.altura_arbol_postorden(nodo.izquierdo)
+            altura_derecha, nodos_derecha = self.altura_arbol_postorden(nodo.derecho)
+
+            # La altura del árbol es la máxima altura de los subárboles más 1 (altura de este nodo)
+            altura_actual = max(altura_izquierda, altura_derecha) + 1
+
+            # Contar el número de nodos en este subárbol
+            num_nodos_actual = nodos_izquierda + nodos_derecha + 1
+
+            return altura_actual + 4, num_nodos_actual + 4
+#Hasta aqui la clase ArbolAVL()      
 
 #MODULO 1
 def gestionEmpleados(hotel):
 
     arbol_empleados = ArbolEmpleados() #se crea el arbol
 
-    arbol_empleados.serializar(hotel)
+    arbol_empleados.serializar(hotel) 
     arbol_empleados.deserializar(hotel)
 
     arbol_empleados.listar()    
@@ -249,9 +370,9 @@ def gestionEmpleados(hotel):
 
             empleados = arbol_empleados.listar()  
             print("\nListado de empleados: ")
-            print("{:<15} {:<15} {:<10} {:<25}".format("\nNombre","Posicion","Salario","Fecha de contratacion"))
+            print("{:<15} {:<15} {:<10} {:^25}".format("\nNombre","Posicion","Salario","Fecha de contratacion"))
             for empleado in empleados:
-                print("{:<15} {:<15} {:<10} {:^25}".format(empleado.nombre, empleado.posicion, empleado.salario, empleado.fecha_contratacion))
+                print("{:<15} {:<15} {:<10} {:^25}".format(empleado.nombre, empleado.posicion, empleado.salario, empleado.fecha_contratacion.strftime('%d/%m/%Y')))
 
         elif opcion == 6:
             arbol_empleados.actualizar_txt(hotel)
@@ -260,14 +381,29 @@ def gestionEmpleados(hotel):
             print("Opcion no valida")                       
 
 #MODULO 2
-def facturacionPagos():
-    print()
+def facturacionPagos(reservas):
+
+    arbol_avl = ArbolAVL()
+
+    arbol_avl.serializar(reservas)
+    arbol_avl.deserializar(reservas)
+
+    facturas = arbol_avl.leer_facturas(reservas) #lectura de cada factura del archivo .txt
+
+    print("\nFacturas almacendas en el arbol: ")
+    for factura in facturas:
+        nodo_factura = NodoAVL(factura) #obejto de tipo NodoAVL()
+        arbol_avl.insertar(nodo_factura, factura) #se insertan al arbol AVL
+        arbol_avl.imprimir_facturas(nodo_factura) #impresion del arbol AVL
+
 
 #MODULO 3
-def estadisticaReportes(arbol_empleados, hotel):
+def estadisticaReportes(arbol_empleados, hotel, arbol_reserva, reserva):
 
     arbol_empleados.serializar(hotel)
     arbol_empleados.deserializar(hotel)
+    facturas = arbol_reserva.leer_facturas(reserva)
+    
 
     while True:
 
@@ -299,8 +435,17 @@ def estadisticaReportes(arbol_empleados, hotel):
 
             altura_preorden = arbol_empleados.altura_arbol_preorden()
             print("\nAltura del arbol (Inorden): ",altura_preorden)
+
         if opcion == 3:
-            print
+
+            print("Hotel: ", reserva)
+            for factura in facturas:
+                nodo_factura = NodoAVL(factura)
+                print("\nMetodo de Pago:", factura.metodo_pago)
+    
+            altura_postorden = arbol_reserva.altura_arbol_postorden(nodo_factura)
+            print("Altura del arbol: ", altura_postorden)
+
         if opcion == 4:
             break            
  
@@ -312,6 +457,10 @@ def main():
     valencia ='valencia.txt'
     margarita = 'margarita.txt'
     caracas = 'caracas.txt'
+
+    reservas_valencia = 'reservas_valencia.txt'
+    reservas_margarita = 'reservas_margarita.txt'
+    reservas_caracas = 'reservas_caracas.txt'
 
     while True:
 
@@ -336,7 +485,17 @@ def main():
                 gestionEmpleados(caracas)
                                               
         elif opcion == 2:
-            facturacionPagos()
+            print("\nSeleccione un hotel:")
+            print("1. Valencia")
+            print("2. Margarita")
+            print("3. Caracas")
+            eleccion = int(input("Seleccione una opcion: "))
+            if eleccion == 1:
+                facturacionPagos('reservas_valencia.txt')
+            elif eleccion == 2:
+                facturacionPagos('reservas_margarita.txt')
+            elif eleccion == 3:
+                facturacionPagos('reservas_caracas.txt')           
 
         elif opcion == 3:
             print("\nSeleccione un hotel:")
@@ -345,11 +504,11 @@ def main():
             print("3. Caracas")
             eleccion = int(input("Seleccione una opcion: "))
             if eleccion == 1:
-                estadisticaReportes(ArbolEmpleados(), valencia)
+                estadisticaReportes(ArbolEmpleados(), valencia, ArbolAVL(), reservas_valencia)
             elif eleccion == 2:
-                estadisticaReportes(ArbolEmpleados(), margarita)
+                estadisticaReportes(ArbolEmpleados(), margarita, ArbolAVL(), reservas_margarita)
             elif eleccion == 3:
-                estadisticaReportes(ArbolEmpleados(), caracas)
+                estadisticaReportes(ArbolEmpleados(), caracas, ArbolAVL(), reservas_caracas)
 
         elif opcion == 4:
             configuracion()                                       
