@@ -21,7 +21,7 @@ class ArbolEmpleados: #Metodos a implementar en 1er modulo
     def __init__(self):
         self.raiz = None
 
-    def serializar(self, archivo): #serializar empleados
+    def serializar(self, archivo): #serializacion y lectura de empleados
         empleados = []
         try:
             with open(archivo, 'r') as f:
@@ -138,7 +138,7 @@ class ArbolEmpleados: #Metodos a implementar en 1er modulo
         self._listar_empleados(self.raiz, empleados)
         return empleados
         
-    def _listar_empleados(self, nodo, empleados):
+    def _listar_empleados(self, nodo, empleados): #listar empleados
         if nodo:
             self._listar_empleados(nodo.izquierda, empleados)
             empleados.append(nodo.empleado)
@@ -152,7 +152,7 @@ class ArbolEmpleados: #Metodos a implementar en 1er modulo
     def listar_fechas(self):
         empleados = self.listar()
         empleados.sort(key=lambda emp: emp.fecha_contratacion) #se ordenan por orden ascendente (mas antiguo a menos antiguo)
-        return empleados
+        return empleados #se retornan todos los empleados
 
     def altura_arbol_inorden(self): #recorrido inorden
         return self._altura(self.raiz)
@@ -196,7 +196,7 @@ class ArbolAVL:
     def maximo(self, a, b):
         return a if a > b else b
 
-    def rotacion_derecha(self, y):
+    def rotacion_derecha(self, y): #rotacion al lado derecho de un nodo
         x = y.izquierdo
         T2 = x.derecho
 
@@ -208,7 +208,7 @@ class ArbolAVL:
 
         return x
 
-    def rotacion_izquierda(self, x):
+    def rotacion_izquierda(self, x): #rotacion al lado derecho de un nodo
         y = x.derecho
         T2 = y.izquierdo
 
@@ -220,13 +220,13 @@ class ArbolAVL:
 
         return y
 
-    def factor_equilibrio(self, nodo):
+    def factor_equilibrio(self, nodo): #Verificar que el arbol este equilibrado
         return self.altura(nodo.izquierdo) - self.altura(nodo.derecho)
 
     def insertar_factura(self, factura):
         self.raiz = self._insertar_factura(self.raiz,factura)
 
-    def _insertar_factura(self, nodo, factura):
+    def _insertar_factura(self, nodo, factura): #insertar factura a arbol AVL
         if not nodo:
             return NodoAVL(factura)
 
@@ -239,7 +239,7 @@ class ArbolAVL:
 
         return self.balancear(nodo)        
 
-    def balancear(self, nodo):
+    def balancear(self, nodo): #balanceo de arbol AVL
         factor_equilibrio = self.factor_equilibrio(nodo)
 
         if factor_equilibrio > 1:
@@ -258,7 +258,7 @@ class ArbolAVL:
 
         return nodo
 
-    def leer_facturas(self, reservas):
+    def leer_facturas(self, reservas): #lectura del .txt de reservas
         facturas = []
         with open(reservas, 'r') as archivo:
             archivo.readline()
@@ -314,10 +314,10 @@ def gestionEmpleados(hotel):
 
     arbol_empleados = ArbolEmpleados() #se crea el arbol
 
-    arbol_empleados.serializar(hotel) 
-    arbol_empleados.deserializar(hotel)
+    arbol_empleados.serializar(hotel) #lectura y serializacion de empleados
+    arbol_empleados.deserializar(hotel) #deserializacion
 
-    arbol_empleados.listar()    
+    arbol_empleados.listar() #insercion de los empleados al arbol binario
 
     while True:
         print("\n1. Crear Empleado")
@@ -340,16 +340,16 @@ def gestionEmpleados(hotel):
 
         elif opcion == 2:
 
-            nombre_buscar = input("Ingrese el nombre del empleado a buscar: ")
+            nombre_buscar = input("\nIngrese el nombre del empleado a buscar: ")
             empleado_encontrado = arbol_empleados.leer(nombre_buscar)
             if empleado_encontrado:
-                print("Empleado encontrado: ")
+                print("\nEmpleado encontrado: ")
                 print("Nombre:",empleado_encontrado.nombre)
                 print("Posicion:",empleado_encontrado.posicion)
                 print("Salario:",empleado_encontrado.salario)
                 print("Fecha de contratacion:", empleado_encontrado.fecha_contratacion.strftime('%d/%m/%Y'))
             else:
-                print("Empleado no encontrado")
+                print("\nEmpleado no encontrado")
 
         elif opcion == 3:
 
@@ -359,7 +359,7 @@ def gestionEmpleados(hotel):
             nueva_fecha_contratacion = input("Ingrese la nueva fecha de contratacion (dd/mm/aaaa): ")
             empleado_modificado = arbol_empleados.modificar(nombre_modificar, nueva_posicon, nuevo_salario, nueva_fecha_contratacion)
             if empleado_modificado:
-                print("Empleado modificado con exito")
+                print("\nEmpleado modificado con exito")
             else:
                 print("No se pudo modificar el empleado")
 
@@ -368,7 +368,7 @@ def gestionEmpleados(hotel):
             nombre_eliminar = input("\nIngrese el nombre del empleado a eliminar: ")
             arbol_empleados.eliminar(nombre_eliminar)
             empleados = [empleado for empleado in empleados if empleado.nombre != nombre_eliminar]
-            print("Empleado eliminado.")
+            print("\nEmpleado eliminado con exito.")
 
         elif opcion == 5:
 
